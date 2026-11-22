@@ -1,0 +1,45 @@
+name: Repository validation
+
+on:
+  push:
+    branches: [dev-lab]
+  pull_request:
+    branches: [dev-lab]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate repository layout
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository without retaining credentials
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Git object integrity
+        shell: bash
+        run: git fsck --no-dangling
+
+      - name: Verify project baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f README.md
+          test -f docs/architecture.md
+          test -f docs/backlog.md
+          test -f .github/ISSUE_TEMPLATE/task.md
+          test -f .github/workflows/repository-validation.yml
+          test -f .github/workflows/security.yml
+
+      - name: Check tracked content for whitespace errors
+        shell: bash
+        run: git diff --check $(git hash-object -t tree /dev/null) HEAD
