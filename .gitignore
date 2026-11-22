@@ -12,4 +12,6 @@
 *.tfplan
 *.plan
 plans/
+terraform/.terraform/
+terraform/terraform.tfstate.d/
 *.log

@@ -1,0 +1,58 @@
+---
+- name: Preflight e baseline opt-in para Ubuntu 24.04
+  hosts: ubuntu_2404
+  gather_facts: false
+  any_errors_fatal: false
+  vars:
+    # O comportamento normal é somente leitura.
+    configure_baseline: false
+    confirm_configuration: false
+
+  pre_tasks:
+    - name: Coletar fatos mínimos sem alterar o host
+      ansible.builtin.setup:
+        gather_subset:
+          - min
+      tags: [preflight]
+
+    - name: Validar distribuição suportada
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.distribution == 'Ubuntu'
+          - ansible_facts.distribution_version is version('24.04', '==')
+        fail_msg: >-
+          Este template aceita somente Ubuntu 24.04;
+          nenhuma configuração foi aplicada.
+      tags: [preflight]
+
+    - name: Exibir resultado sanitizado do preflight
+      ansible.builtin.debug:
+        msg: >-
+          Preflight aprovado para {{ inventory_hostname }}:
+          {{ ansible_facts.distribution }} {{ ansible_facts.distribution_version }}.
+      tags: [preflight]
+
+  tasks:
+    - name: Exigir confirmação dupla antes de alterar configuração básica
+      ansible.builtin.assert:
+        that:
+          - configure_baseline | bool
+          - confirm_configuration | bool
+        fail_msg: >-
+          A baseline exige configure_baseline=true e
+          confirm_configuration=true no template do Semaphore.
+      when: configure_baseline | bool or confirm_configuration | bool
+      tags: [baseline]
+
+    - name: Aplicar baseline mínima e reversível quando autorizada
+      become: true
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+        update_cache: false
+      when:
+        - configure_baseline | bool
+        - confirm_configuration | bool
+      tags: [baseline]

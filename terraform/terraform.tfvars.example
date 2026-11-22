@@ -1,0 +1,13 @@
+# Exemplo sem valores do laboratório. Copie para um arquivo local ignorado e
+# preencha somente no host Semaphore, após reservas aprovadas.
+node_name         = "proxmox-node-name"
+vm_id             = 0
+vm_name           = "ubuntu2404-example"
+template_vmid     = 0
+datastore_id      = "storage-name"
+bridge            = "bridge-name"
+ipv4_address      = "192.0.2.10/24"
+ipv4_gateway      = "192.0.2.1"
+guest_username    = "ubuntu"
+guest_ssh_public_keys = []
+start_vm          = false

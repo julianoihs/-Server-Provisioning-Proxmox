@@ -1,0 +1,4 @@
+---
+# O playbook usa somente ansible.builtin; não há collections externas.
+collections: []
+roles: []

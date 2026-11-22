@@ -1,0 +1,7 @@
+---
+# Inventário vazio para validação de sintaxe local.
+# O inventário real é cadastrado no Semaphore e não pertence ao repositório.
+all:
+  children:
+    ubuntu_2404:
+      hosts: {}

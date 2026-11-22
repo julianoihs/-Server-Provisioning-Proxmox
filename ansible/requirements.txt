@@ -1,0 +1,2 @@
+# Instalar no ambiente de execução do Semaphore, fora deste checkout.
+ansible-core==2.18.18
