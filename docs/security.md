@@ -14,11 +14,24 @@ As ações externas usadas estão fixadas por SHA e o checkout não preserva a c
 
 ## Segredos de automação
 
-Quando Packer, Terraform ou Ansible forem incluídos, os valores de acesso devem vir de um cofre local protegido no ambiente administrativo. Nunca copie valores para GitHub Actions Secrets, GitHub Actions Variables, arquivos `.tfvars`, variáveis de CI, inventários, commits, issues ou logs.
+Quando Terraform ou Ansible forem incluídos, os valores de acesso devem vir do
+Key Store local do Semaphore ou de armazenamento protegido administrado no LXC.
+Nunca copie valores para GitHub Actions Secrets, GitHub Actions Variables,
+arquivos `.tfvars`, variáveis de CI, inventários, commits, issues ou logs.
 
 O preflight Proxmox é manual neste ciclo e usa somente o contrato local protegido do ambiente administrativo, fora do checkout. Ele contém URL HTTPS com nome DNS do certificado, token de API e CA local. Os valores não são impressos, resumidos, enviados como artefato nem configurados no GitHub. A validação TLS permanece ativa.
 
-Não existe workflow de preflight nem runner no escopo atual. O procedimento manual documentado consulta apenas versão e nós com `GET`; quando uma automação for retomada, ela exigirá revisão de segurança própria antes de ser adicionada ao GitHub.
+Não existe workflow de preflight nem runner no escopo atual. O procedimento
+manual documentado consulta apenas versão e nós com `GET`.
+
+O Semaphore Community consulta o GitHub para obter código, mas executa seus
+templates manualmente no próprio servidor Semaphore. Os checks GitHub não
+podem acessar o laboratório. Consulte o contrato em
+`docs/semaphore-community.md` antes de cadastrar qualquer template.
+
+State e planos Terraform devem permanecer fora do checkout, em persistência
+protegida do Semaphore. O arquivo `.terraform.lock.hcl` pode ser versionado
+após revisão; `*.tfstate*`, planos e backend com dados locais não.
 
 ## Proteções a habilitar no GitHub
 
