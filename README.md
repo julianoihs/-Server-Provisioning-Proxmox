@@ -4,7 +4,7 @@ Laboratório para desenhar, registrar e validar o fluxo de provisionamento de se
 
 ## Estado
 
-Estrutura inicial criada na branch `dev-lab`. Nenhuma automação, credencial ou configuração de infraestrutura foi adicionada ainda.
+Estrutura inicial criada na branch `dev-lab`. O preflight Proxmox permanece manual neste ciclo; não há runner nem automação de provisionamento.
 
 ## Objetivo inicial
 
@@ -20,7 +20,7 @@ Manter as tarefas e decisões do laboratório rastreáveis enquanto são definid
 - `docs/architecture.md` — escopo e desenho inicial do laboratório.
 - `docs/backlog.md` — tarefas iniciais e decisões pendentes.
 - `docs/security.md` — regras para segredos e pipelines do repositório.
-- `.github/workflows/proxmox-preflight.yml` — preflight manual e somente leitura, restrito ao runner Proxmox do laboratório.
+- `docs/proxmox-preflight-manual.md` — procedimento manual e somente leitura do preflight.
 - `.github/ISSUE_TEMPLATE/task.md` — modelo de tarefa para o GitHub.
 - `.github/workflows/` — validação e segurança executadas pelo GitHub Actions.
 

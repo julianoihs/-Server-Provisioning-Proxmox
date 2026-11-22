@@ -14,11 +14,11 @@ As ações externas usadas estão fixadas por SHA e o checkout não preserva a c
 
 ## Segredos de automação
 
-Quando Packer, Terraform ou Ansible forem incluídos, os valores de acesso devem vir de um cofre local protegido no executor dedicado. Nunca copie valores para GitHub Actions Secrets, GitHub Actions Variables, arquivos `.tfvars`, variáveis de CI, inventários, commits, issues ou logs.
+Quando Packer, Terraform ou Ansible forem incluídos, os valores de acesso devem vir de um cofre local protegido no ambiente administrativo. Nunca copie valores para GitHub Actions Secrets, GitHub Actions Variables, arquivos `.tfvars`, variáveis de CI, inventários, commits, issues ou logs.
 
-O preflight Proxmox lê um contrato local fora do checkout, em `/etc/proxmox-lab/preflight.env`, com permissão `0600` para o usuário do runner. O arquivo define URL HTTPS com nome DNS do certificado, token de API e caminho local para a CA; a CA também deve ter permissão `0600`. Os valores não são impressos, resumidos, enviados como artefato nem configurados no GitHub. A validação TLS permanece ativa.
+O preflight Proxmox é manual neste ciclo e usa somente o contrato local protegido do ambiente administrativo, fora do checkout. Ele contém URL HTTPS com nome DNS do certificado, token de API e CA local. Os valores não são impressos, resumidos, enviados como artefato nem configurados no GitHub. A validação TLS permanece ativa.
 
-O workflow `Proxmox preflight` só pode ser iniciado manualmente e só executa no runner dedicado com os rótulos `self-hosted`, `linux` e `proxmox-lab`. Ele não faz checkout do repositório, não aceita pull request/fork e consulta apenas os endpoints de versão e nós com `GET`.
+Não existe workflow de preflight nem runner no escopo atual. O procedimento manual documentado consulta apenas versão e nós com `GET`; quando uma automação for retomada, ela exigirá revisão de segurança própria antes de ser adicionada ao GitHub.
 
 ## Proteções a habilitar no GitHub
 
