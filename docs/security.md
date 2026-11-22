@@ -14,9 +14,11 @@ As ações externas usadas estão fixadas por SHA e o checkout não preserva a c
 
 ## Segredos de automação
 
-Quando Packer, Terraform ou Ansible forem incluídos, os valores de acesso devem vir de um cofre de segredos ou de GitHub Actions Secrets/Environment Secrets configurados pela interface do GitHub. Nunca inclua valores em arquivos `.tfvars`, variáveis de CI, inventários, commits, issues ou logs.
+Quando Packer, Terraform ou Ansible forem incluídos, os valores de acesso devem vir de um cofre local protegido no executor dedicado. Nunca copie valores para GitHub Actions Secrets, GitHub Actions Variables, arquivos `.tfvars`, variáveis de CI, inventários, commits, issues ou logs.
 
-Use apenas referências de ambiente, por exemplo `PROXMOX_API_URL`, `PROXMOX_API_TOKEN_ID` e `PROXMOX_API_TOKEN_SECRET`; os valores são configurados fora do repositório. O endpoint deve usar o DNS do certificado e a CA do cluster, com validação TLS ativa.
+O preflight Proxmox lê um contrato local fora do checkout, em `/etc/proxmox-lab/preflight.env`, com permissão `0600` para o usuário do runner. O arquivo define URL HTTPS com nome DNS do certificado, token de API e caminho local para a CA; a CA também deve ter permissão `0600`. Os valores não são impressos, resumidos, enviados como artefato nem configurados no GitHub. A validação TLS permanece ativa.
+
+O workflow `Proxmox preflight` só pode ser iniciado manualmente e só executa no runner dedicado com os rótulos `self-hosted`, `linux` e `proxmox-lab`. Ele não faz checkout do repositório, não aceita pull request/fork e consulta apenas os endpoints de versão e nós com `GET`.
 
 ## Proteções a habilitar no GitHub
 

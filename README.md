@@ -20,6 +20,7 @@ Manter as tarefas e decisões do laboratório rastreáveis enquanto são definid
 - `docs/architecture.md` — escopo e desenho inicial do laboratório.
 - `docs/backlog.md` — tarefas iniciais e decisões pendentes.
 - `docs/security.md` — regras para segredos e pipelines do repositório.
+- `.github/workflows/proxmox-preflight.yml` — preflight manual e somente leitura, restrito ao runner Proxmox do laboratório.
 - `.github/ISSUE_TEMPLATE/task.md` — modelo de tarefa para o GitHub.
 - `.github/workflows/` — validação e segurança executadas pelo GitHub Actions.
 

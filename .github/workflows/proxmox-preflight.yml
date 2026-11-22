@@ -1,0 +1,82 @@
+name: Proxmox preflight
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: proxmox-preflight
+  cancel-in-progress: false
+
+jobs:
+  api-readiness:
+    name: Validate TLS and read-only API access
+    runs-on: [self-hosted, linux, proxmox-lab]
+    timeout-minutes: 5
+    env:
+      PROXMOX_PREFLIGHT_CONFIG_FILE: /etc/proxmox-lab/preflight.env
+    steps:
+      - name: Validate local configuration and query Proxmox
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+
+          config_file="$PROXMOX_PREFLIGHT_CONFIG_FILE"
+          if [[ ! -f "$config_file" ]] || [[ "$(stat -c '%a' "$config_file")" != '600' ]]; then
+            echo 'Local preflight configuration is unavailable or has unsafe permissions.' >&2
+            exit 1
+          fi
+
+          PROXMOX_API_URL=''
+          PROXMOX_API_TOKEN=''
+          PROXMOX_CA_CERT_PATH=''
+          while IFS='=' read -r key value || [[ -n "$key" ]]; do
+            [[ -z "$key" || "$key" == \#* ]] && continue
+            case "$key" in
+              PROXMOX_API_URL) PROXMOX_API_URL="$value" ;;
+              PROXMOX_API_TOKEN) PROXMOX_API_TOKEN="$value" ;;
+              PROXMOX_CA_CERT_PATH) PROXMOX_CA_CERT_PATH="$value" ;;
+              *) echo 'Local preflight configuration contains an unsupported key.' >&2; exit 1 ;;
+            esac
+          done < "$config_file"
+
+          if [[ -z "$PROXMOX_API_URL" || -z "$PROXMOX_API_TOKEN" || -z "$PROXMOX_CA_CERT_PATH" ]]; then
+            echo 'Local preflight configuration is incomplete.' >&2
+            exit 1
+          fi
+          if [[ ! "$PROXMOX_API_URL" =~ ^https://[^/]+$ ]] || [[ "$PROXMOX_API_URL" =~ ^https://[0-9] ]]; then
+            echo 'Local preflight API URL must use the certificate DNS name over HTTPS.' >&2
+            exit 1
+          fi
+          if [[ ! -f "$PROXMOX_CA_CERT_PATH" ]] || [[ "$(stat -c '%a' "$PROXMOX_CA_CERT_PATH")" != '600' ]]; then
+            echo 'Local CA certificate is unavailable or has unsafe permissions.' >&2
+            exit 1
+          fi
+
+          curl_config="$(mktemp)"
+          version_json="$(mktemp)"
+          nodes_json="$(mktemp)"
+          trap 'rm -f "$curl_config" "$version_json" "$nodes_json"' EXIT
+          printf 'header = "Authorization: PVEAPIToken=%s"\n' "$PROXMOX_API_TOKEN" > "$curl_config"
+
+          api_get() {
+            curl --silent --fail \
+              --proto '=https' \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --cacert "$PROXMOX_CA_CERT_PATH" \
+              --config "$curl_config" \
+              --request GET \
+              --output "$2" \
+              "$PROXMOX_API_URL$1" 2>/dev/null
+          }
+
+          if ! api_get '/api2/json/version' "$version_json" || ! api_get '/api2/json/nodes' "$nodes_json"; then
+            echo 'Authenticated read-only Proxmox API preflight failed.' >&2
+            exit 1
+          fi
+          jq -e '.data.version | strings' "$version_json" >/dev/null
+          jq -e '.data | arrays' "$nodes_json" >/dev/null
+          echo 'Authenticated read-only Proxmox API preflight succeeded.'
