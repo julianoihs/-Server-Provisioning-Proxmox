@@ -1,0 +1,12 @@
+# Dados locais e segredos
+.env
+.env.*
+*.tfvars
+*.pem
+*.key
+
+# Artefatos de automação
+.terraform/
+*.tfstate
+*.tfstate.*
+*.log
