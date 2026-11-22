@@ -28,31 +28,31 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Reject tracked secret and state files
+      - name: Reject secret and state files in repository history
         shell: bash
         run: |
           set -euo pipefail
-          forbidden_files="$(git ls-files | grep -E '(^|/)(\.env(\..*)?|.*\.(pem|key|p12|pfx|tfstate)(\..*)?|id_(rsa|ecdsa|ed25519))$' || true)"
+          forbidden_files="$(git log --all --pretty=format: --name-only | sort -u | grep -E '(^|/)(\.env(\..*)?|.*\.(pem|key|p12|pfx|tfstate)(\..*)?|id_(rsa|ecdsa|ed25519))$' || true)"
           if [ -n "$forbidden_files" ]; then
-            echo 'Sensitive or state files must not be tracked:' >&2
+            echo 'Sensitive or state files must not be present in Git history:' >&2
             echo "$forbidden_files" >&2
             exit 1
           fi
 
-      - name: Reject private key material
+      - name: Reject private key material in repository history
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -n -I -E -- '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'; then
+          if git log --all --format= --patch | grep -E -- '^\+.*-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'; then
             echo 'Private key material must not be committed.' >&2
             exit 1
           fi
 
-      - name: Reject common token formats
+      - name: Reject common token formats in repository history
         shell: bash
         run: |
           set -euo pipefail
-          if git grep -n -I -E -- '(gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,})'; then
+          if git log --all --format= --patch | grep -E -- '^\+.*(gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,})'; then
             echo 'A likely GitHub or GitLab token was found.' >&2
             exit 1
           fi
